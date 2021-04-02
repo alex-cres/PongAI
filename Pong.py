@@ -16,6 +16,9 @@ width_perimeter=width/2-10
 height_perimeter=height/2-10
 score_base_height=(height/2)-40
 randList = [-1,1]
+width_limits=[-width_perimeter,width_perimeter]
+height_limits=[score_base_height-10,-height_perimeter]
+        
 color="black"
 #defining a screen, title, backgound color, size
 wn = turtle.Screen()
@@ -125,14 +128,14 @@ class Line:
            
      
 class Ball:
-    def __init__(self,height_perimeter,width_perimeter,soundFile):
+    def __init__(self,height_perimeter,width_perimeter,soundFile,randList):
         #Ball
         self.ball = turtle.Turtle()
         self.ball.speed(0) #Animation speed
         self.ball.shape("square") # defult 20x20
         self.ball.color("white")
         self.ball.penup()
-        self.ball.goto(0,score_base_height)
+        self.ball.goto(0,0)
         self.height_perimeter=height_perimeter
         self.width_perimeter=width_perimeter
         self.soundFile=soundFile
@@ -156,24 +159,24 @@ class Ball:
             self.ball.dx *=-1
             soundPlayer(self.soundFile)
     def checkWalls(self,score):
-        if self.ball.ycor() > self.height_perimeter:
-            self.ball.sety(self.height_perimeter)
+        if self.ball.ycor() > self.height_perimeter[1]:
+            self.ball.sety(self.height_perimeter[1])
             self.ball.dy *= -1
             soundPlayer(self.soundFile)
         
-        if self.ball.ycor() < -(self.height_perimeter):
-            self.ball.sety(-(self.height_perimeter))
+        if self.ball.ycor() < self.height_perimeter[0]:
+            self.ball.sety(self.height_perimeter[0])
             self.ball.dy *= -1
             soundPlayer(self.soundFile)
 
-        if self.ball.xcor() > (self.width_perimeter):
+        if self.ball.xcor() > self.width_perimeter[1]:
             self.ball.goto(0,0)
             self.ball.dx*=-1
             self.ball.dy *= random.choice(randList)
             score.scoreUp(0).reWrite()
             soundPlayer(self.soundFile)
 
-        if self.ball.xcor() < -(self.width_perimeter):
+        if self.ball.xcor() < self.width_perimeter[0]:
             self.ball.goto(0,0)
             self.ball.dx*=-1
             self.ball.dy *= random.choice(randList)
@@ -190,18 +193,23 @@ class Game:
         height_perimeter=height/2-10
         score_base_height=(height/2)-40
         starting_width_paddles= width/2 -width/16
+        width_limits=[-width_perimeter,width_perimeter]
+        height_limits=[-height_perimeter,score_base_height-10]
         #--------------------------#-----------------------------------#
         #Init Lines
         Line(0,score_base_height-10).writeDashed(height,20)
         Line(width_perimeter,score_base_height-10).writeDashed(height,40,18)
         Line(-width_perimeter,score_base_height-10).writeDashed(height,40,18)
+        Line(-width_perimeter,score_base_height-10,1).HorizontalToRight().writeDashed(width,40,20)
+        Line(-width_perimeter,-height_perimeter,1).HorizontalToRight().writeDashed(width,40,20)
+        
         #Init Paddles
         paddle_a = Paddle(["w","s"],-starting_width_paddles,5,1)
         paddle_b = Paddle(["Up","Down"],+starting_width_paddles,5,1)
         #Init Score 
         score = Score()
         #InitBall
-        ball = Ball(height_perimeter,width_perimeter,soundFile)
+        ball = Ball(height_limits,width_limits,soundFile,randList)
         #Keyboard binding
         wn.listen()
         paddle_a.key_bind()
