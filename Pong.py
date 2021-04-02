@@ -43,15 +43,13 @@ class Paddle:
         self.stretch_len = stretch_len
         self.controls = controls
     def paddle(self,control):
-        def paddle_Call(): #keypress needs a callable function 
-            y = self.paddle_turtle.ycor()
-            #if y + (self.stretch_wid*10) <= width/2 and y - (self.stretch_wid*10) >= -width/2:
-            y += 20 if self.controls[0]==control else -20
-            self.paddle_turtle.sety(y)
-        return paddle_Call
+        y = self.paddle_turtle.ycor()
+        #if y + (self.stretch_wid*10) <= width/2 and y - (self.stretch_wid*10) >= -width/2:
+        y += 20 if self.controls[0]==control else -20
+        self.paddle_turtle.sety(y)
     def key_bind(self):  
-        wn.onkeypress(self.paddle(self.controls[0]),self.controls[0])
-        wn.onkeypress(self.paddle(self.controls[1]),self.controls[1])
+        wn.onkeypress(lambda:self.paddle(self.controls[0]),self.controls[0])
+        wn.onkeypress(lambda:self.paddle(self.controls[1]),self.controls[1])
     def xcor(self):
         return self.paddle_turtle.xcor()
     def ycor(self):
@@ -214,7 +212,7 @@ class Game:
         wn.listen()
         paddle_a.key_bind()
         paddle_b.key_bind()
-
+        wn.onkeypress(lambda:wn.bye(),"Escape")
         #Main game loop
         while True:
             wn.update() #updates the screen
