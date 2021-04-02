@@ -32,6 +32,7 @@ wn.tracer(0)
 class Paddle:
     def __init__(self,controls,starting_width,stretch_wid,stretch_len):
         self.paddle_turtle = turtle.Turtle()
+        self.paddle_turtle.st()
         self.paddle_turtle.speed(0) #Animation speed
         self.paddle_turtle.shape("square") # defult 20x20
         self.paddle_turtle.color("white")
@@ -66,6 +67,8 @@ class Paddle:
             return (self.starting_width+10)
         else:
             return (self.starting_width-10)
+    def clear(self):
+        self.paddle_turtle.ht()
 
 #Score class   
 class Score:
@@ -84,6 +87,8 @@ class Score:
     def scoreUp(self,index):
         self.__score[index]+=1
         return self
+    def clear(self):
+        self.pen.clear()
 
 #Line 
 class Line:
@@ -122,6 +127,8 @@ class Line:
         self.line.forward(size)
         self.line.penup()
         return self
+    def clear(self):
+        self.line.clear()
         
            
      
@@ -129,6 +136,7 @@ class Ball:
     def __init__(self,height_perimeter,width_perimeter,soundFile,randList):
         #Ball
         self.ball = turtle.Turtle()
+        self.ball.st()
         self.ball.speed(0) #Animation speed
         self.ball.shape("square") # defult 20x20
         self.ball.color("white")
@@ -180,9 +188,64 @@ class Ball:
             self.ball.dy *= random.choice(randList)
             score.scoreUp(1).reWrite() 
             soundPlayer(self.soundFile)
+    def clear(self):
+        self.ball.ht()
 
 
 class Game:
+    def __init__(self):
+        self.isInMenu=True
+        self.isInGame=False
+        self.menu={}
+        self.menu["objects"]=[]
+        self.game={}
+        self.game["objects"]=[]
+    def main(self):
+        while self.isInMenu:
+            self.startMenu()
+            while self.isInGame:
+                self.startGame()
+        wn.bye()
+    def drawMenuTitle(self):
+        pen=turtle.Turtle()
+        pen.speed(0)
+        pen.color("white")
+        pen.penup()
+        pen.hideturtle()
+        pen.goto(0,score_base_height)
+        pen.write("Menu",align="center",font=("Courier",24,"normal"))
+        return pen
+    def drawMenuItem(self,text,height):
+        pen=turtle.Turtle()
+        pen.speed(0)
+        pen.color("white")
+        pen.penup()
+        pen.hideturtle()
+        pen.goto(0,height)
+        pen.write(text,align="center",font=("Courier",24,"normal"))
+        return pen
+    def startMenu(self):
+        self.isInMenu=True
+        self.menu["objects"].append(self.drawMenuTitle())
+        self.menu["objects"].append(Line(width_perimeter,score_base_height-10).writeDashed(height,40,18))
+        self.menu["objects"].append(Line(-width_perimeter,score_base_height-10).writeDashed(height,40,18))
+        self.menu["objects"].append(Line(-width_perimeter,score_base_height-10,1).HorizontalToRight().writeDashed(width,40,20))
+        self.menu["objects"].append(Line(-width_perimeter,-height_perimeter,1).HorizontalToRight().writeDashed(width,40,20))
+        self.menu["objects"].append(self.drawMenuItem("   1. Enter Game",score_base_height-score_base_height*5/10))
+        self.menu["objects"].append(self.drawMenuItem("Esc. Exit Game",score_base_height-score_base_height*7/10))
+        wn.listen()
+        wn.onkeypress(lambda:self.exitMenu(),"Escape")
+        wn.onkeypress(lambda:self.enterGame(),"1")
+        while self.isInMenu:
+            wn.update() #updates the screen
+    def enterGame(self):
+        self.exitMenu()
+        self.isInGame=True
+    def exitMenu(self):
+        self.isInMenu=False
+        for i in self.menu["objects"]:
+            i.clear()
+
     def startGame(self):
         #--------------------------#-----------------------------------#
         wn.bgcolor(color)
@@ -195,26 +258,30 @@ class Game:
         height_limits=[-height_perimeter,score_base_height-10]
         #--------------------------#-----------------------------------#
         #Init Lines
-        Line(0,score_base_height-10).writeDashed(height,20)
-        Line(width_perimeter,score_base_height-10).writeDashed(height,40,18)
-        Line(-width_perimeter,score_base_height-10).writeDashed(height,40,18)
-        Line(-width_perimeter,score_base_height-10,1).HorizontalToRight().writeDashed(width,40,20)
-        Line(-width_perimeter,-height_perimeter,1).HorizontalToRight().writeDashed(width,40,20)
+        self.game["objects"].append(Line(0,score_base_height-10).writeDashed(height,20))
+        self.game["objects"].append(Line(width_perimeter,score_base_height-10).writeDashed(height,40,18))
+        self.game["objects"].append(Line(-width_perimeter,score_base_height-10).writeDashed(height,40,18))
+        self.game["objects"].append(Line(-width_perimeter,score_base_height-10,1).HorizontalToRight().writeDashed(width,40,20))
+        self.game["objects"].append(Line(-width_perimeter,-height_perimeter,1).HorizontalToRight().writeDashed(width,40,20))
         
         #Init Paddles
         paddle_a = Paddle(["w","s"],-starting_width_paddles,5,1)
         paddle_b = Paddle(["Up","Down"],+starting_width_paddles,5,1)
+        self.game["objects"].append(paddle_a)
+        self.game["objects"].append(paddle_b)
         #Init Score 
         score = Score()
+        self.game["objects"].append(score)
         #InitBall
         ball = Ball(height_limits,width_limits,soundFile,randList)
+        self.game["objects"].append(ball)
         #Keyboard binding
         wn.listen()
         paddle_a.key_bind()
         paddle_b.key_bind()
-        wn.onkeypress(lambda:wn.bye(),"Escape")
+        wn.onkeypress(lambda:self.exitGame(),"Escape")
         #Main game loop
-        while True:
+        while self.isInGame:
             wn.update() #updates the screen
             #Move ball
             ball.moveBall()
@@ -224,15 +291,17 @@ class Game:
             ball.checkCollision(paddle_b)
             ball.checkCollision(paddle_a)
 
+    def exitGame(self):
+        self.isInGame=False
+        self.isInMenu=True
+        for i in self.game["objects"]:
+            i.clear()
+
+
+
 
 game = Game()
-while True:
-   # Line(-width_perimeter,height_perimeter,1) \
-   # .HorizontalToRight().writeNormal(width_perimeter*2-10) \
-   # .VerticalToDown().writeNormal(height_perimeter*2-10) \
-   # .HorizontalToLeft().writeNormal(width_perimeter*2-10) \
-   # .VerticalToUp().writeNormal(height_perimeter*2-10)      
-   # wn.update() #updates the screen
-   game.startGame()
+game.main()
+    
     
     
